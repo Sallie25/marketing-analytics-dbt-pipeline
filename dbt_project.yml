@@ -13,3 +13,13 @@ clean-targets:
 models:
   marketing_analytics_dbt_pipeline:
     +materialized: view
+
+    staging:
+      +schema: staging
+
+    intermediate:
+      +schema: intermediate
+
+    marts:
+      +schema: marts
+
