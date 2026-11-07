@@ -1,0 +1,15 @@
+name: 'marketing_analytics_dbt_pipeline'
+version: '1.0.0'
+config-version: 2
+
+profile: 'marketing_analytics_dbt_pipeline'
+
+model-paths: ['models']
+target-path: 'target'
+clean-targets:
+  - 'target'
+  - 'dbt_packages'
+
+models:
+  marketing_analytics_dbt_pipeline:
+    +materialized: view

@@ -1,0 +1,7 @@
+[project]
+name = "marketing-analytics-dbt-pipeline"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "dbt-databricks>=1.12.7",
+]

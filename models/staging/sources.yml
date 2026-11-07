@@ -1,0 +1,35 @@
+version: 2
+
+sources:
+  - name: bronze
+    description: "Raw Facebook and Snapchat advertising data ingested into Databricks Delta tables."
+    database: "{{ env_var('DATABRICKS_ANALYTICS_CATALOG') }}"
+    schema: bronze
+
+    tables:
+      - name: facebook_accounts
+        description: "Facebook advertising account details."
+
+      - name: facebook_campaigns
+        description: "Facebook campaign details."
+
+      - name: facebook_adgroups
+        description: "Facebook ad group details."
+
+      - name: facebook_ads
+        description: "Facebook ad details."
+
+      - name: facebook_ads_stats
+        description: "Facebook advertising performance statistics."
+
+      - name: snapchat_campaigns
+        description: "Snapchat campaign history."
+
+      - name: snapchat_adgroups
+        description: "Snapchat ad group history."
+
+      - name: snapchat_ads
+        description: "Snapchat ad history."
+
+      - name: snapchat_ads_stats
+        description: "Snapchat advertising performance statistics."
