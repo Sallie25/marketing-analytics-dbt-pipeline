@@ -1,5 +1,5 @@
-cat > README.md <<'EOF'
 # Marketing Analytics dbt Pipeline
+---
 
 An end-to-end marketing analytics pipeline built with dbt Core and Databricks, combining Facebook and Snapchat advertising data into a Kimball star schema.
 
