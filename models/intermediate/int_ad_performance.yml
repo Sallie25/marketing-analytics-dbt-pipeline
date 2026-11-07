@@ -1,0 +1,32 @@
+
+version: 2
+
+models:
+  - name: int_ad_performance
+    description: >
+      Unified Facebook and Snapchat advertising performance records.
+      Incrementally maintained using a seven-day reporting-date lookback
+      and a MERGE strategy.
+
+    columns:
+      - name: performance_key
+        description: "SHA-256 identifier derived from each platform's reporting grain."
+        data_tests:
+          - unique
+          - not_null
+
+      - name: platform
+        description: "Advertising platform associated with the record."
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['facebook', 'snapchat']
+
+      - name: ad_date
+        description: "Date of advertising activity."
+        data_tests:
+          - not_null
+
+      - name: spend
+        description: "Advertising spend in the source currency."

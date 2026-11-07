@@ -1,115 +1,59 @@
-# Marketing Data Platform with Databricks & dbt Core
+cat > README.md <<'EOF'
+# Marketing Analytics dbt Pipeline
 
-## Project Overview
+An end-to-end marketing analytics pipeline built with dbt Core and Databricks, combining Facebook and Snapchat advertising data into a Kimball star schema.
 
-This project implements a unified marketing analytics platform
-for Facebook Ads and Snapchat Ads.
+## Architecture
 
-The goal is to ingest advertising data into Databricks,
-transform it using dbt Core, and provide reliable analytical
-models for reporting and downstream consumption.
 
-## Technology Stack
+The diagram below illustrates the data flow from Bronze sources through staging and incremental transformation into reporting marts.
 
-- Databricks
-- Unity Catalog
-- Databricks SQL Warehouse
-- dbt Core
-- dbt-databricks
-- uv (Python dependency management)
-- Elementary (planned)
-- GitHub Actions (planned)
+![Marketing Analytics Pipeline Architecture](diagrams/architecture.png)
 
-## Data Sources
+## Star Schema — Entity Relationship Diagram
 
-The assignment provides nine CSV datasets:
+The ERD shows how the advertising performance fact table connects to the ads, ad groups, campaigns, and date dimensions.
 
-### Facebook Ads
-- ads_stats.csv
-- new_acccount_de_randomized.csv
-- new_adgroup_de_randomized.csv
-- new_ads_de_randomized.csv
-- new_campaign_de_randomized.csv
+![Marketing Analytics Star Schema ERD](diagrams/star_schema_erd.png)
 
-### Snapchat Ads
-- snapchat_ads_stats.csv
-- snapchat_ads_ad_history_new_ad_names.csv
-- snapchat_ads_adgroup_history_new_ad_group_names.csv
-- snapchat_ads_campaign_history_new_campaign_names.csv
+Bronze sources → Staging views → Incremental intermediate model → Reporting marts
 
-Raw CSV files are excluded from version control.
+- **Bronze:** 9 source tables with freshness monitoring.
+- **Staging:** 9 views standardizing identifiers, types, and metrics.
+- **Intermediate:** Incremental `int_ad_performance` model using merge, SHA-256 performance keys, a 7-day lookback, and schema synchronization.
+- **Marts:** `fact_ad_performance`, `dim_ads`, `dim_adgroups`, `dim_campaigns`, and `dim_date`.
+- **SCD Type 2:** Snapchat ad-group snapshot tracking name and campaign assignment changes.
 
-## Planned Architecture
+## Data Validation
 
-CSV Sources
-    |
-    v
-Databricks Bronze Layer
-    |
-    v
-dbt Staging Models
-    |
-    v
-dbt Intermediate Models
-    |
-    v
-Unified Marketing Fact Model
-    |
-    v
-SQL / BI / Analytics / AI Consumers
+- 95,109 performance records with unique performance keys.
+- Facebook: 92,300 records.
+- Snapchat: 2,809 records.
+- All fact records matched their dimensions.
+- Deduplicated Snapchat ad groups to 264 unique current records.
+- Preserved EUR and USD separately; no currency conversion is applied.
+- Enforced model contracts on the fact and ads dimension.
+- Generic tests for uniqueness, nulls, accepted values, and relationships.
+- Two passing singular SQL tests for nonnegative metrics and fact/intermediate reconciliation.
 
-## Environments
+## Marketing Metrics
 
-The intended Unity Catalog structure is:
+- CTR (%) = clicks / impressions × 100
+- CPC = spend / clicks
+- CPM = spend / impressions × 1,000
 
-- marketing_dev
-- marketing_ci
-- marketing_prod
+Ratios must be recalculated from aggregated totals when reporting across records. Monetary totals must be grouped by currency.
 
-Each environment will have dedicated schemas for its
-transformation models.
+## SCD Type 2
 
-Production authentication will use a Databricks
-Service Principal.
+The initial Snapchat snapshot contains 264 current versions and no historical versions. Future changes to tracked attributes can create historical records. The snapshot does not reconstruct history from before its first run.
 
-## Local Development
+## Run the Project
 
-Install uv:
+Install dependencies using the project's uv environment and configure a Databricks dbt profile.
 
-https://docs.astral.sh/uv/
-
-Install project dependencies:
-
-    uv sync --frozen
-
-Verify dbt installation:
-
-    uv run dbt --version
-
-## Current Implementation Status
-
-Completed:
-- Local project initialization
-- uv dependency management
-- dbt Core installation
-- Databricks adapter installation
-- Raw dataset organization
-- Databricks SQL Warehouse access verification
-- Unity Catalog discovery
-
-Pending:
-- Dedicated Unity Catalog setup
-- Bronze ingestion
-- dbt project and models
-- Automated data quality tests
-- Documentation and lineage
-- Elementary observability
-- CI/CD
-- Production Service Principal authentication
-
-## Official Documentation
-
-- https://docs.getdbt.com/
-- https://docs.databricks.com/
-- https://docs.astral.sh/uv/
-- https://docs.elementary-data.com/
+```bash
+uv run dbt debug
+uv run dbt source freshness
+uv run dbt build
+uv run dbt snapshot

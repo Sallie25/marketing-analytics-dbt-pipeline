@@ -1,0 +1,153 @@
+version: 2
+
+models:
+  - name: fact_ad_performance
+    description: >
+      Advertising performance fact table combining Facebook and Snapchat.
+      Each record represents one source-level advertising performance record.
+      Monetary values retain their original currency.
+
+    config:
+      contract:
+        enforced: true
+
+    columns:
+      - name: performance_key
+        data_type: string
+        description: Unique identifier for a performance record.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: ad_key
+        data_type: string
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_ads')
+                field: ad_key
+
+      - name: adgroup_key
+        data_type: string
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_adgroups')
+                field: adgroup_key
+
+      - name: campaign_key
+        data_type: string
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_campaigns')
+                field: campaign_key
+
+      - name: date_key
+        data_type: int
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+
+      - name: platform
+        data_type: string
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['facebook', 'snapchat']
+
+      - name: ad_id
+        data_type: string
+
+      - name: account_id
+        data_type: string
+
+      - name: currency_code
+        data_type: string
+        description: Original advertising spend currency; not converted.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['EUR', 'USD']
+
+      - name: country
+        data_type: string
+
+      - name: data_src
+        data_type: string
+
+      - name: ad_date
+        data_type: date
+        data_tests:
+          - not_null
+
+      - name: spend
+        data_type: decimal(18,4)
+
+      - name: impressions
+        data_type: bigint
+
+      - name: clicks
+        data_type: bigint
+
+      - name: ctr_pct
+        data_type: double
+
+      - name: cpc
+        data_type: double
+
+      - name: cpm
+        data_type: double
+
+  - name: dim_ads
+    description: One current descriptive record per platform and advertisement.
+
+    config:
+      contract:
+        enforced: true
+
+    columns:
+      - name: ad_key
+        data_type: string
+        data_tests:
+          - not_null
+          - unique
+
+      - name: platform
+        data_type: string
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['facebook', 'snapchat']
+
+      - name: ad_id
+        data_type: string
+        data_tests:
+          - not_null
+
+      - name: ad_name
+        data_type: string
+
+      - name: ad_status
+        data_type: string
+
+      - name: campaign_id
+        data_type: string
+
+      - name: ad_group_id
+        data_type: string
+
+      - name: account_id
+        data_type: string
+
+      - name: updated_at
+        data_type: timestamp
