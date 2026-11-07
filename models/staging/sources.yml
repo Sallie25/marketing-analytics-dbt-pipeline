@@ -1,35 +1,186 @@
+
 version: 2
 
 sources:
   - name: bronze
-    description: "Raw Facebook and Snapchat advertising data ingested into Databricks Delta tables."
+    description: >
+      Raw Facebook and Snapchat advertising datasets stored as
+      Databricks Delta tables. These are historical source copies.
+      Freshness is measured using table modification metadata,
+      not the original advertising-platform ingestion timestamp.
     database: "{{ env_var('DATABRICKS_ANALYTICS_CATALOG') }}"
     schema: bronze
+
+    config:
+      freshness:
+        warn_after: {count: 24, period: hour}
+        error_after: {count: 48, period: hour}
 
     tables:
       - name: facebook_accounts
         description: "Facebook advertising account details."
+        columns:
+          - name: account_id
+            description: "Source identifier of the advertising account."
+            data_type: bigint
+          - name: account_name
+            description: "Name of the advertising account."
+            data_type: string
+          - name: ad_currency_code
+            description: "Currency code associated with the account."
+            data_type: string
+          - name: account_created_at
+            description: "Timestamp when the account was created in the source."
+            data_type: timestamp
+          - name: account_updated_at
+            description: "Timestamp when the account was last updated in the source."
+            data_type: timestamp
+
+      - name: facebook_adgroups
+        description: "Facebook ad group identifiers, names, and update timestamps."
+        columns:
+          - name: ad_group_id
+            description: "Source identifier of the Facebook ad group."
+            data_type: string
+          - name: ad_group_name
+            description: "Name of the Facebook ad group."
+            data_type: string
+          - name: ad_group_updated_at
+            description: "Timestamp of the ad group's last recorded source update."
+            data_type: timestamp
+
+      - name: facebook_ads
+        description: "Facebook advertisement details and relationships."
+        columns:
+          - name: ad_id
+            description: "Source identifier of the advertisement."
+            data_type: string
+          - name: campaign_id
+            description: "Identifier of the associated campaign."
+            data_type: string
+          - name: ad_group_id
+            description: "Identifier of the associated ad group."
+            data_type: string
+          - name: account_id
+            description: "Identifier of the associated advertising account."
+            data_type: string
+          - name: ad_name
+            description: "Name of the advertisement."
+            data_type: string
+          - name: ad_status
+            description: "Status recorded for the advertisement."
+            data_type: string
+          - name: ad_updated_at
+            description: "Timestamp of the advertisement's last recorded source update."
+            data_type: timestamp
+
+      - name: facebook_ads_stats
+        description: "Daily Facebook advertising performance statistics."
+        columns:
+          - name: ad_id
+            description: "Identifier of the advertisement being measured."
+            data_type: string
+          - name: account_id
+            description: "Identifier of the associated advertising account."
+            data_type: string
+          - name: ad_spend
+            description: "Recorded advertising spend; source currency is not specified in this table."
+            data_type: double
+          - name: ad_impressions
+            description: "Number of recorded advertisement impressions."
+            data_type: bigint
+          - name: ad_clicks
+            description: "Number of recorded advertisement clicks."
+            data_type: bigint
+          - name: ad_date
+            description: "Date of advertising activity, not the ingestion date."
+            data_type: date
 
       - name: facebook_campaigns
         description: "Facebook campaign details."
-
-      - name: facebook_adgroups
-        description: "Facebook ad group details."
-
-      - name: facebook_ads
-        description: "Facebook ad details."
-
-      - name: facebook_ads_stats
-        description: "Facebook advertising performance statistics."
-
-      - name: snapchat_campaigns
-        description: "Snapchat campaign history."
+        columns:
+          - name: campaign_id
+            description: "Source identifier of the campaign."
+            data_type: string
+          - name: campaign_name
+            description: "Name of the campaign."
+            data_type: string
+          - name: campaign_updated_at
+            description: "Timestamp of the campaign's last recorded source update."
+            data_type: timestamp
 
       - name: snapchat_adgroups
-        description: "Snapchat ad group history."
+        description: "Snapchat ad group details and campaign relationships."
+        columns:
+          - name: _surrogate_key
+            description: "Surrogate identifier present in the source dataset."
+            data_type: string
+          - name: ad_group_id
+            description: "Source identifier of the Snapchat ad group."
+            data_type: string
+          - name: campaign_id
+            description: "Identifier of the associated Snapchat campaign."
+            data_type: string
+          - name: ad_group_name
+            description: "Name of the Snapchat ad group."
+            data_type: string
+          - name: ad_group_updated_at
+            description: "Timestamp of the ad group's last recorded source update."
+            data_type: timestamp
 
       - name: snapchat_ads
-        description: "Snapchat ad history."
+        description: "Snapchat advertisement details."
+        columns:
+          - name: ad_id
+            description: "Source identifier of the Snapchat advertisement."
+            data_type: string
+          - name: ad_group_id
+            description: "Identifier of the associated Snapchat ad group."
+            data_type: string
+          - name: ad_name
+            description: "Name of the Snapchat advertisement."
+            data_type: string
+          - name: ad_detail_updated_at
+            description: "Timestamp of the advertisement's last recorded source update."
+            data_type: timestamp
 
       - name: snapchat_ads_stats
-        description: "Snapchat advertising performance statistics."
+        description: "Daily Snapchat advertising performance statistics."
+        columns:
+          - name: ad_detail_id
+            description: "Advertisement detail identifier associated with the performance record."
+            data_type: string
+          - name: ad_currency_code
+            description: "Currency code associated with the performance record."
+            data_type: string
+          - name: ad_country
+            description: "Country associated with the performance record."
+            data_type: string
+          - name: ad_spend
+            description: "Recorded advertising spend."
+            data_type: double
+          - name: ad_impressions
+            description: "Number of recorded advertisement impressions."
+            data_type: bigint
+          - name: ad_clicks
+            description: "Raw click count stored as text; may require numeric conversion."
+            data_type: string
+          - name: ad_date
+            description: "Date of advertising activity, not the ingestion date."
+            data_type: date
+          - name: data_src
+            description: "Source label supplied with the performance record."
+            data_type: string
+
+      - name: snapchat_campaigns
+        description: "Snapchat campaign details and account relationships."
+        columns:
+          - name: campaign_id
+            description: "Source identifier of the Snapchat campaign."
+            data_type: string
+          - name: account_id
+            description: "Identifier of the associated advertising account."
+            data_type: string
+          - name: campaign_name
+            description: "Name of the Snapchat campaign."
+            data_type: string
